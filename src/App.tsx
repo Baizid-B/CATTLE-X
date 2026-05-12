@@ -3,37 +3,55 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/hooks/useAuth";
-import Index from "./pages/Index.tsx";
-import Marketplace from "./pages/Marketplace.tsx";
-import CowDetails from "./pages/CowDetails.tsx";
-import AdminDashboard from "./pages/AdminDashboard.tsx";
-import Login from "./pages/Login.tsx";
-import NotFound from "./pages/NotFound.tsx";
-import Contact from "./pages/Contact.tsx";
+import { AuthProvider, useAuth } from "./hooks/useAuth";
+
+// Pages & Components
+import Index from "./pages/Index";
+import Marketplace from "./pages/Marketplace";
+import CowDetails from "./pages/CowDetails";
+import AdminDashboard from "./pages/AdminDashboard";
+import Login from "./pages/Login";
+import Contact from "./pages/Contact";
+import NotFound from "./pages/NotFound";
+import AuthCallback from "./Auth/AuthCallback";
 import AnnouncementPopup from "./components/AnnouncementPopup";
-import AuthCallback from "./Auth/AuthCallback.tsx";
+import Loading from "../src/components/ui/Loading";
 
 const queryClient = new QueryClient();
 
+// --- মেইন রাউট সেটআপ ---
+const AppContent = () => {
+  const { loading } = useAuth();
+
+  if (loading) return <Loading />;
+
+  return (
+    <>
+      <AnnouncementPopup />
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/cow/:id" element={<CowDetails />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
+  );
+};
+
+// --- মূল অ্যাপ স্ট্রাকচার ---
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        {/* ✅ BrowserRouter এখন সবার বাইরে, AppContent এর useAuth এখন সঠিকভাবে কাজ করবে */}
         <BrowserRouter>
-          <AnnouncementPopup />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/marketplace" element={<Marketplace />} />
-            <Route path="/cow/:id" element={<CowDetails />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="*" element={<NotFound />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-          </Routes>
+          <AppContent />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

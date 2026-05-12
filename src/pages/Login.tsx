@@ -1,45 +1,57 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { MotionConfig, motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import heroFarm from "@/assets/hero-farm.jpg";
-
-const signInWithEmail = async (email: string, password: string) => {
-  return { error: null };
-};
-
-const signUpWithEmail = async (email: string, password: string) => {
-  return { error: null };
-};
+import { useAuth } from "@/hooks/useAuth";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { user, signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuth();
+
   const [mode, setMode] = useState<"login" | "signup">("login");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // ✅ role অনুযায়ী redirect
+  useEffect(() => {
+    if (user) {
+      if (user.role === "admin" || user.role === "manager") {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
+    const err = searchParams.get("error");
+    if (err) setErrorMsg(decodeURIComponent(err));
+  }, [searchParams]);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
-    setSubmitting(true);
-    const fn = mode === "login" ? signInWithEmail : signUpWithEmail;
-    const { error } = await fn(email, password);
-    if (error) {
-      console.error(error);
-    } else if (mode === "signup") {
-      console.log("অ্যাকাউন্ট তৈরি হয়েছে!");
-    }
-    setSubmitting(false);
-  };
+    setErrorMsg(null);
 
-  const handleGoogleLogin = () => {
-    const clientID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    const redirectURI = import.meta.env.VITE_GOOGLE_REDIRECT_URI;
-    const scope =
-      "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email";
-    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientID}&redirect_uri=${redirectURI}&response_type=token&scope=${scope}&include_granted_scopes=true`;
-    window.location.assign(googleAuthUrl);
+    if (mode === "signup" && !name) { setErrorMsg("নাম দিন"); return; }
+    if (!email || !password) { setErrorMsg("ইমেইল ও পাসওয়ার্ড দিন"); return; }
+
+    setSubmitting(true);
+
+    const result =
+      mode === "login"
+        ? await signInWithEmail(email, password)
+        : await signUpWithEmail(name, email, password);
+
+    if (result.error) {
+      setErrorMsg(result.error);
+      setSubmitting(false);
+    }
+    // ✅ navigate নেই — উপরের useEffect user watch করে নিজেই redirect করবে
   };
 
   return (
@@ -67,8 +79,27 @@ const Login = () => {
               গবাদিপশু ব্যবসায় আপনাকে স্বাগতম
             </p>
 
-            {/* Email/Password Form */}
+            {errorMsg && (
+              <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-sm">
+                {errorMsg}
+              </div>
+            )}
+
             <form onSubmit={handleEmailAuth} className="space-y-4 mb-6">
+              {mode === "signup" && (
+                <div>
+                  <label className="text-xs tracking-wider uppercase text-muted-foreground block mb-1">
+                    নাম
+                  </label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="আপনার নাম"
+                    className="w-full p-3 border border-border bg-background text-sm focus:outline-none focus:border-foreground transition-colors"
+                  />
+                </div>
+              )}
               <div>
                 <label className="text-xs tracking-wider uppercase text-muted-foreground block mb-1">
                   ইমেইল
@@ -78,7 +109,7 @@ const Login = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="email@example.com"
-                  className="w-full p-3 border border-border bg-background text-sm"
+                  className="w-full p-3 border border-border bg-background text-sm focus:outline-none focus:border-foreground transition-colors"
                 />
               </div>
               <div>
@@ -90,21 +121,25 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full p-3 border border-border bg-background text-sm"
+                  className="w-full p-3 border border-border bg-background text-sm focus:outline-none focus:border-foreground transition-colors"
                 />
               </div>
               <button
                 type="submit"
-                disabled={!email || !password || submitting}
+                disabled={submitting}
                 className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-foreground text-background font-medium text-sm tracking-wide hover:bg-foreground/90 transition-colors disabled:opacity-50"
               >
                 {submitting && <Loader2 size={16} className="animate-spin" />}
-                {mode === "login" ? "সাইন ইন করুন" : "অ্যাকাউন্ট তৈরি করুন"}
+                {submitting
+                  ? "অপেক্ষা করুন..."
+                  : mode === "login"
+                  ? "সাইন ইন করুন"
+                  : "অ্যাকাউন্ট তৈরি করুন"}
               </button>
             </form>
 
             <button
-              onClick={() => setMode(mode === "login" ? "signup" : "login")}
+              onClick={() => { setMode(mode === "login" ? "signup" : "login"); setErrorMsg(null); setName(""); }}
               className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
             >
               {mode === "login"
@@ -117,63 +152,37 @@ const Login = () => {
                 <div className="w-full border-t border-border"></div>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-4 text-muted-foreground">
-                  অথবা
-                </span>
+                <span className="bg-background px-4 text-muted-foreground">অথবা</span>
               </div>
             </div>
 
             <button
-              onClick={handleGoogleLogin}
+              onClick={signInWithGoogle}
               className="w-full flex items-center justify-center gap-3 px-6 py-3 border border-border bg-background hover:bg-secondary transition-colors text-sm font-medium tracking-wide"
             >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
-                  fill="#4285F4"
-                />
-                <path
-                  d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z"
-                  fill="#34A853"
-                />
-                <path
-                  d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
-                  fill="#FBBC05"
-                />
-                <path
-                  d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
-                  fill="#EA4335"
-                />
+              <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+                <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
+                <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
               </svg>
               গুগল দিয়ে সাইন ইন করুন
             </button>
 
             <p className="text-xs text-muted-foreground text-center mt-8">
-              সাইন ইন করার মাধ্যমে আপনি আমাদের শর্তাবলী ও গোপনীয়তা নীতিতে সম্মত
-              হচ্ছেন।
+              সাইন ইন করার মাধ্যমে আপনি আমাদের শর্তাবলী ও গোপনীয়তা নীতিতে সম্মত হচ্ছেন।
             </p>
           </motion.div>
         </MotionConfig>
       </div>
 
-      {/* Right panel - hero image */}
+      {/* Right panel */}
       <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
-        <img
-          src={heroFarm}
-          alt="Bangladesh cattle farm"
-          className="w-full h-full object-cover"
-        />
+        <img src={heroFarm} alt="Bangladesh cattle farm" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         <div className="absolute bottom-12 left-12 right-12 text-white">
           <h3 className="text-3xl font-bold mb-2">বাংলাদেশের সেরা গরুর হাট</h3>
-          <p className="text-white/70 text-sm">
-            AI-পাওয়ার্ড লাইভ মূল্য বুদ্ধিমত্তা প্ল্যাটফর্ম
-          </p>
+          <p className="text-white/70 text-sm">AI-পাওয়ার্ড লাইভ মূল্য বুদ্ধিমত্তা প্ল্যাটফর্ম</p>
         </div>
       </div>
     </div>
