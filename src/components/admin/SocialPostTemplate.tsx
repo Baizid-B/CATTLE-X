@@ -9,8 +9,8 @@ import { toast } from "sonner";
 const WEBSITE_URL = "https://example.com";
 
 const CONTACT_INFO = {
-  phone: "+880 1XXX-XXXXXX",
-  whatsapp: "+880 1XXX-XXXXXX",
+  phone: "+880 1304867302",
+  whatsapp: "+880 1304867302",
   address: "ঢাকা, বাংলাদেশ",
 };
 

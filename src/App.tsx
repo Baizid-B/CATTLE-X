@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Marketplace from "./pages/Marketplace";
 import CowDetails from "./pages/CowDetails";
 import AdminDashboard from "./pages/AdminDashboard";
+import ManagerDashboard from "./pages/ManagerDashboard"; // ✅ যোগ করুন
 import Login from "./pages/Login";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
@@ -33,6 +34,7 @@ const AppContent = () => {
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/cow/:id" element={<CowDetails />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/manager" element={<ManagerDashboard />} /> {/* ✅ ম্যানেজার রাউট */}
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
@@ -49,7 +51,6 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        {/* ✅ BrowserRouter এখন সবার বাইরে, AppContent এর useAuth এখন সঠিকভাবে কাজ করবে */}
         <BrowserRouter>
           <AppContent />
         </BrowserRouter>

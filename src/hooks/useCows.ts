@@ -217,16 +217,19 @@ export const usePriceIndex = () => {
   };
 };
 
-// Custom hook for single cow
+// ✅ আপডেটেড Custom hook for single cow
 export const useCow = (id: string) => {
-  const { data: cows, isLoading } = useCows();
+  // useCows থেকে সম্পূর্ণ স্টেট নেওয়া হচ্ছে
+  const { data: cows, isLoading, error, refetch } = useCows();
   
+  // আইডি অনুযায়ী নির্দিষ্ট গরু খোঁজা
   const cow = cows?.find((c: Cow) => c.id === id || c._id === id);
   
   return {
     data: cow,
     isLoading,
-    error: null,
+    error, // ✅ error এখন সঠিকভাবে রিটার্ন করবে
+    refetch, // ✅ refetch ফাংশনও যোগ করা হয়েছে (প্রয়োজন হলে)
   };
 };
 
