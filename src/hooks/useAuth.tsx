@@ -1,7 +1,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 
-const API = import.meta.env.VITE_API_URL || "https://cattle-x-back-end.vercel.app";
+const API = import.meta.env.VITE_API_URL || "https://bci-backend-seven.vercel.app ";
 
 interface User {
   _id: string;
