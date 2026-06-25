@@ -47,15 +47,15 @@ const AppContent = () => {
 // --- মূল অ্যাপ স্ট্রাকচার ---
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
         <BrowserRouter>
-          <AppContent />
+            <AuthProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                  <AppContent />
+              </TooltipProvider>
+            </AuthProvider>
         </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
   </QueryClientProvider>
 );
 
