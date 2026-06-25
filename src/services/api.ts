@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://cattle-x-back-end.vercel.app";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://bci-backend-seven.vercel.app";
 
 class ApiService {
   private baseUrl: string;
