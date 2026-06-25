@@ -1,6 +1,6 @@
-
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 
+// ✅ Bug fix: trailing space সরানো হয়েছে
 const API = import.meta.env.VITE_API_URL || "https://bci-backend-seven.vercel.app";
 
 interface User {
@@ -63,14 +63,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const clientID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     const redirectURI = import.meta.env.VITE_GOOGLE_REDIRECT_URI;
     const scope =
-      "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email";
+      "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email openid";
+
+    // ✅ Fix: response_type=id_token token — id_token পাওয়ার জন্য
+    // ✅ Fix: nonce যোগ করা হয়েছে — id_token এর জন্য required
+    const nonce = Math.random().toString(36).substring(2);
     const googleAuthUrl =
       `https://accounts.google.com/o/oauth2/v2/auth` +
       `?client_id=${clientID}` +
       `&redirect_uri=${encodeURIComponent(redirectURI)}` +
-      `&response_type=token` +
+      `&response_type=id_token%20token` +
       `&scope=${encodeURIComponent(scope)}` +
+      `&nonce=${nonce}` +
       `&include_granted_scopes=true`;
+
     window.location.assign(googleAuthUrl);
   };
 

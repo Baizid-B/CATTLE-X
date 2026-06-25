@@ -10,7 +10,9 @@ const AuthCallback = () => {
   useEffect(() => {
     const hash = window.location.hash;
     const params = new URLSearchParams(hash.replace("#", "?"));
-    const token = params.get("access_token");
+
+    // ✅ Fix: access_token → id_token নেওয়া হচ্ছে
+    const token = params.get("id_token");
 
     if (!token) {
       navigate("/login?error=Google+লগইন+ব্যর্থ+হয়েছে", { replace: true });
